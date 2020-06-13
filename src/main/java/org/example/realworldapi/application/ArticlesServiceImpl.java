@@ -261,7 +261,7 @@ public class ArticlesServiceImpl implements ArticlesService {
 
   private void configSlug(String title, Article article) {
     String slug = slugProvider.slugify(title);
-    if (articleRepository.existsBySlug(slug)) {
+    if (slug.isEmpty() || articleRepository.existsBySlug(slug)) {
       slug += UUID.randomUUID().toString();
     }
     article.setSlug(slug);
