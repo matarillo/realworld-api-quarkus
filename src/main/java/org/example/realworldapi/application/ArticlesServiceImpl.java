@@ -16,9 +16,7 @@ import org.example.realworldapi.domain.service.ProfilesService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.transaction.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -89,7 +87,9 @@ public class ArticlesServiceImpl implements ArticlesService {
   public ArticleData create(
       String title, String description, String body, List<String> tagList, Long authorId) {
     Article article = createArticle(title, description, body, authorId);
-    createArticlesTags(article, tagList);
+    if (isPresent(tagList)) {
+      createArticlesTags(article, tagList);
+    }
     return getArticle(article, authorId);
   }
 
@@ -103,7 +103,7 @@ public class ArticlesServiceImpl implements ArticlesService {
   @Override
   @Transactional
   public ArticleData update(
-      String slug, String title, String description, String body, Long authorId) {
+      String slug, String title, String description, String body, List<String> tagList, Long authorId) {
 
     Article article = articleRepository.findBySlug(slug).orElseThrow(ArticleNotFoundException::new);
 
@@ -117,6 +117,10 @@ public class ArticlesServiceImpl implements ArticlesService {
 
     if (isPresent(body)) {
       article.setBody(body);
+    }
+
+    if (isPresent(tagList)) {
+      updateArticlesTags(article, tagList);
     }
 
     return getArticle(article, authorId);
@@ -275,8 +279,27 @@ public class ArticlesServiceImpl implements ArticlesService {
         });
   }
 
+  private void updateArticlesTags(Article article, List<String> tagList) {
+    Set<String> tagSet = new HashSet<>(tagList);
+    List<Tag> currentTags = tagRepository.findArticleTags(article.getId());
+    for (Tag tag: currentTags) {
+      if (!tagSet.remove(tag.getName())) {
+        Optional<ArticlesTags> articlesTags = find(article, tag);
+        articlesTags.ifPresent(at -> articlesTagsRepository.remove(at));
+      }
+    }
+    List<String> newTagList = new ArrayList<>(tagSet);
+    createArticlesTags(article, newTagList);
+  }
+
   private Tag createTag(String tagName) {
     return tagRepository.create(new Tag(tagName));
+  }
+
+  private Optional<ArticlesTags> find(Article article, Tag tag) {
+    return tag.getArticlesTags().stream()
+      .filter(at -> at.getArticle().getId().equals(article.getId()))
+      .findFirst();
   }
 
   private ArticlesTags createArticlesTags(Article article, Tag tag) {
@@ -325,5 +348,9 @@ public class ArticlesServiceImpl implements ArticlesService {
 
   private boolean isPresent(String value) {
     return value != null && !value.isEmpty();
+  }
+
+  private boolean isPresent(List<String> values) {
+    return values != null && values.size() > 0;
   }
 }

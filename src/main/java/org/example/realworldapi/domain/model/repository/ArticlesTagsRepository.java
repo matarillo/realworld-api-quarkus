@@ -5,4 +5,6 @@ import org.example.realworldapi.domain.model.entity.ArticlesTags;
 public interface ArticlesTagsRepository {
 
   ArticlesTags create(ArticlesTags articlesTags);
+
+  void remove(ArticlesTags articlesTags);
 }

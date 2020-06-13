@@ -1,5 +1,6 @@
 package org.example.realworldapi.infrastructure.repository.criteriabuilder;
 
+import org.example.realworldapi.domain.model.entity.Article;
 import org.example.realworldapi.domain.model.entity.ArticlesTags;
 import org.example.realworldapi.domain.model.entity.ArticlesTagsKey;
 import org.example.realworldapi.domain.model.repository.ArticlesTagsRepository;
@@ -30,5 +31,10 @@ public class ArticlesTagsRepositoryHibernate
   @Override
   public ArticlesTags create(ArticlesTags articlesTags) {
     return persist(articlesTags);
+  }
+
+  @Override
+  public void remove(ArticlesTags articlesTags) {
+    entityManager.remove(articlesTags);
   }
 }

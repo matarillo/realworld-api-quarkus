@@ -437,18 +437,20 @@ public class ArticlesResourceIntegrationTest extends AbstractIntegrationTest {
           throws JsonProcessingException {
     User loggedUser =
         createUser("loggedUser", "loggeduser@mail.com", "bio", "image", "loggeduser123");
-    Article article = createArticle(loggedUser, "Title", "Description", "Body");
+    List<Article> articles = createArticles(loggedUser, "Title", "Description", "Body", 1);
+    Tag tag1 = createTag("Tag 1");
+    Tag tag2 = createTag("Tag 2");
+    createArticlesTags(articles, tag1, tag2);
 
-    UpdateArticleRequest updateArticleRequest = new UpdateArticleRequest();
-    updateArticleRequest.setTitle("updated title");
-    updateArticleRequest.setDescription("updated description");
-    updateArticleRequest.setBody("updated body");
+    UpdateArticleRequest updateArticleRequest =
+        createUpdateArticleRequest("updated title", "updated description", "updated body", "Tag 2", "Tag 3");
+    List<String> tagList = updateArticleRequest.getTagList();
 
     given()
         .contentType(MediaType.APPLICATION_JSON)
         .header(AUTHORIZATION_HEADER, AUTHORIZATION_HEADER_VALUE_PREFIX + loggedUser.getToken())
         .body(objectMapper.writeValueAsString(updateArticleRequest))
-        .pathParam("slug", article.getSlug())
+        .pathParam("slug", articles.get(0).getSlug())
         .put(ARTICLES_PATH + "/{slug}")
         .then()
         .statusCode(HttpStatus.SC_OK)
@@ -458,7 +460,9 @@ public class ArticlesResourceIntegrationTest extends AbstractIntegrationTest {
             "article.description",
             is(updateArticleRequest.getDescription()),
             "article.body",
-            is(updateArticleRequest.getBody()));
+            is(updateArticleRequest.getBody()),
+            "article.tagList",
+            hasItems(tagList.get(0), tagList.get(1)));
   }
 
   @Test
@@ -665,5 +669,15 @@ public class ArticlesResourceIntegrationTest extends AbstractIntegrationTest {
     newArticleRequest.setBody(body);
     newArticleRequest.setTagList(Arrays.asList(tagList));
     return newArticleRequest;
+  }
+
+  private UpdateArticleRequest createUpdateArticleRequest(
+      String title, String description, String body, String... tagList) {
+    UpdateArticleRequest updateArticleRequest = new UpdateArticleRequest();
+    updateArticleRequest.setTitle(title);
+    updateArticleRequest.setDescription(description);
+    updateArticleRequest.setBody(body);
+    updateArticleRequest.setTagList(Arrays.asList(tagList));
+    return updateArticleRequest;
   }
 }

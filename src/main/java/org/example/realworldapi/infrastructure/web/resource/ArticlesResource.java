@@ -121,6 +121,7 @@ public class ArticlesResource {
             updateArticleRequest.getTitle(),
             updateArticleRequest.getDescription(),
             updateArticleRequest.getBody(),
+            updateArticleRequest.getTagList(),
             loggedUserId);
     return Response.ok(new ArticleResponse(updatedArticleData)).status(Response.Status.OK).build();
   }

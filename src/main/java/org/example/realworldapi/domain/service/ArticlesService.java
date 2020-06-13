@@ -22,7 +22,7 @@ public interface ArticlesService {
 
   ArticleData findBySlug(String slug);
 
-  ArticleData update(String slug, String title, String description, String body, Long authorId);
+  ArticleData update(String slug, String title, String description, String body, List<String> tagList, Long authorId);
 
   void delete(String slug, Long authorId);
 
